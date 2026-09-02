@@ -1,0 +1,30 @@
+name: Bug report
+description: Report something that is not working correctly.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Do not include customer names, ticket contents, or other sensitive information.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: List the smallest safe set of steps that reproduces the problem.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Extension version
+      placeholder: 1.1.0
+    validations:
+      required: true
+  - type: input
+    id: edge
+    attributes:
+      label: Microsoft Edge version

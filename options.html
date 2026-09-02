@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Franks ConnectWise Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <h1>Franks ConnectWise</h1>
+    <p class="sub">Ticket and tab settings</p>
+
+    <section aria-labelledby="tab-rename-heading">
+      <h2 id="tab-rename-heading">TabRename</h2>
+      <label class="check">
+        <input id="tabRenameEnabled" type="checkbox">
+        Automatically rename ticket tabs from the ConnectWise ticket header
+      </label>
+    </section>
+
+    <section aria-labelledby="group-heading">
+      <h2 id="group-heading">Ticket group</h2>
+      <label>
+        Tab group name
+        <input id="groupTitle" type="text" maxlength="80">
+      </label>
+
+      <label>
+        Tab group color
+        <select id="groupColor">
+          <option value="purple">Purple</option>
+          <option value="blue">Blue</option>
+          <option value="cyan">Cyan</option>
+          <option value="green">Green</option>
+          <option value="yellow">Yellow</option>
+          <option value="orange">Orange</option>
+          <option value="red">Red</option>
+          <option value="pink">Pink</option>
+          <option value="grey">Grey</option>
+        </select>
+      </label>
+
+      <label class="check">
+        <input id="collapseGroup" type="checkbox">
+        Collapse the ticket group after opening
+      </label>
+
+      <label class="check">
+        <input id="keepCalendarActive" type="checkbox">
+        Keep the calendar tab active after opening tickets
+      </label>
+    </section>
+
+    <div class="row">
+      <button id="save" type="button">Save settings</button>
+      <span id="saved" role="status" aria-live="polite"></span>
+    </div>
+  </main>
+  <script src="options.js"></script>
+</body>
+</html>

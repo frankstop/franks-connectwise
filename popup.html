@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Franks ConnectWise</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <div class="brand">
+      <div class="mark" aria-hidden="true">FCW</div>
+      <div>
+        <h1>Franks ConnectWise</h1>
+        <p>Today's ticket launcher</p>
+      </div>
+    </div>
+
+    <button id="openTickets" class="primary" type="button">Open Today's Tickets</button>
+
+    <div id="status" class="status" role="status" aria-live="polite">
+      Open your ConnectWise calendar, then click the button.
+    </div>
+
+    <div class="actions">
+      <button id="options" class="secondary" type="button">Settings</button>
+    </div>
+
+    <p class="hint">Brown and pink calendar items open. Green items are ignored.</p>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

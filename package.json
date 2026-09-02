@@ -1,0 +1,14 @@
+{
+  "name": "franks-connectwise",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Development and release tooling for the Franks ConnectWise Edge extension.",
+  "scripts": {
+    "test": "node --test && node scripts/validate.mjs",
+    "validate": "node scripts/validate.mjs",
+    "package": "./scripts/package.sh"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
