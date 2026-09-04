@@ -92,6 +92,11 @@ button:focus-visible {
   outline-offset: 2px;
 }
 
+input:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
 .primary {
   width: 100%;
   border: 0;
@@ -125,6 +130,36 @@ button:focus-visible {
 
 .status.success { background: var(--success-bg); color: var(--success-text); }
 .status.error { background: var(--error-bg); color: var(--error-text); }
+
+.group-control {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.group-control h2 {
+  margin: 0 0 9px;
+  font-size: 13px;
+}
+
+.group-control .check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.group-control .check input { margin-top: 2px; }
+
+#groupModeHelp {
+  margin: 8px 0 0 24px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
 
 .actions {
   display: flex;

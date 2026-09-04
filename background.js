@@ -36,6 +36,40 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .catch((error) => sendResponse({ ok: false, error: error?.message || String(error) }));
     return true;
   }
+
+  if (message?.type === "GET_TAB_RENAME_MODE") {
+    getTabRenameMode(sender.tab)
+      .then(sendResponse)
+      .catch((error) => sendResponse({ ok: false, error: error?.message || String(error) }));
+    return true;
+  }
+
+  if (message?.type === "GET_CURRENT_GROUP_TITLE_MODE") {
+    getCurrentGroupTitleMode()
+      .then(sendResponse)
+      .catch((error) => sendResponse({ ok: false, error: error?.message || String(error) }));
+    return true;
+  }
+
+  if (message?.type === "SET_CURRENT_GROUP_TITLE_MODE") {
+    setCurrentGroupTitleMode(message.descriptionOnly)
+      .then(sendResponse)
+      .catch((error) => sendResponse({ ok: false, error: error?.message || String(error) }));
+    return true;
+  }
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (!("groupId" in changeInfo) || !isConnectWiseTab(tab)) return;
+  notifyTabRenameMode(tab).catch((error) => {
+    console.warn("Could not update TabRename after a tab group change:", error);
+  });
+});
+
+chrome.tabGroups.onRemoved.addListener((group) => {
+  chrome.storage.session.remove(groupPreferenceKey(group.id)).catch((error) => {
+    console.warn("Could not clean up a TabRename group preference:", error);
+  });
 });
 
 chrome.commands.onCommand.addListener(async (command) => {
@@ -183,6 +217,98 @@ async function openRegionLinks(requestedUrls, sourceTab) {
   }
 
   return { ok: true, opened: createdTabIds.length, groupId };
+}
+
+function groupPreferenceKey(groupId) {
+  return `tabRenameDescriptionOnly:${groupId}`;
+}
+
+function isGroupedTab(tab) {
+  return Number.isInteger(tab?.groupId) && tab.groupId >= 0;
+}
+
+function isConnectWiseTab(tab) {
+  return typeof tab?.url === "string" && tab.url.startsWith("https://na.myconnectwise.net/");
+}
+
+async function getGroupDescriptionOnly(groupId) {
+  const key = groupPreferenceKey(groupId);
+  const stored = await chrome.storage.session.get(key);
+  return stored[key] === true;
+}
+
+async function getTabRenameMode(tab) {
+  const settings = await chrome.storage.sync.get({ tabRenameEnabled: true });
+  const descriptionOnly = isGroupedTab(tab)
+    ? await getGroupDescriptionOnly(tab.groupId)
+    : false;
+
+  return {
+    ok: true,
+    grouped: isGroupedTab(tab),
+    groupId: isGroupedTab(tab) ? tab.groupId : null,
+    enabled: settings.tabRenameEnabled !== false,
+    descriptionOnly
+  };
+}
+
+async function getCurrentGroupTitleMode() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!isGroupedTab(tab)) {
+    const settings = await chrome.storage.sync.get({ tabRenameEnabled: true });
+    return {
+      ok: true,
+      grouped: false,
+      groupId: null,
+      enabled: settings.tabRenameEnabled !== false,
+      descriptionOnly: false
+    };
+  }
+
+  return getTabRenameMode(tab);
+}
+
+async function setCurrentGroupTitleMode(descriptionOnly) {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!isGroupedTab(tab)) {
+    throw new Error("Open the extension from a tab in a group to change its ticket title format.");
+  }
+
+  const key = groupPreferenceKey(tab.groupId);
+  if (descriptionOnly === true) {
+    await chrome.storage.session.set({ [key]: true });
+  } else {
+    await chrome.storage.session.remove(key);
+  }
+
+  const updated = await updateGroupTicketTabs(tab.groupId);
+  return { ok: true, grouped: true, groupId: tab.groupId, descriptionOnly: descriptionOnly === true, updated };
+}
+
+async function updateGroupTicketTabs(groupId) {
+  const [tabs, settings, descriptionOnly] = await Promise.all([
+    chrome.tabs.query({ groupId }),
+    chrome.storage.sync.get({ tabRenameEnabled: true }),
+    getGroupDescriptionOnly(groupId)
+  ]);
+  const ticketTabs = tabs.filter(isConnectWiseTab);
+
+  const results = await Promise.all(ticketTabs.map((tab) => chrome.tabs.sendMessage(tab.id, {
+    type: "APPLY_TAB_RENAME_MODE",
+    enabled: settings.tabRenameEnabled !== false,
+    descriptionOnly
+  }).then(() => true).catch(() => false)));
+
+  return results.filter(Boolean).length;
+}
+
+async function notifyTabRenameMode(tab) {
+  const mode = await getTabRenameMode(tab);
+  await chrome.tabs.sendMessage(tab.id, {
+    type: "APPLY_TAB_RENAME_MODE",
+    enabled: mode.enabled,
+    descriptionOnly: mode.descriptionOnly
+  });
 }
 
 function normalizeColor(color) {

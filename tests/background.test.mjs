@@ -40,16 +40,22 @@ function createCalendarFixture(entries = []) {
 function loadBackground(overrides = {}, fixtureOptions = {}) {
   const runtimeListeners = [];
   const commandListeners = [];
+  const tabUpdatedListeners = [];
+  const groupRemovedListeners = [];
   const calls = {
     create: [],
     executeScript: [],
     group: [],
     groupUpdate: [],
     tabUpdate: [],
-    query: []
+    query: [],
+    sendMessage: [],
+    sessionRemove: [],
+    sessionSet: []
   };
   let nextTabId = 100;
   const calendar = createCalendarFixture(fixtureOptions.calendarEntries);
+  const sessionStore = { ...(fixtureOptions.sessionStore || {}) };
 
   const chrome = {
     commands: {
@@ -69,14 +75,31 @@ function loadBackground(overrides = {}, fixtureOptions = {}) {
       }
     },
     storage: {
+      session: {
+        async get(key) {
+          return { [key]: sessionStore[key] };
+        },
+        async remove(key) {
+          calls.sessionRemove.push(key);
+          delete sessionStore[key];
+        },
+        async set(values) {
+          calls.sessionSet.push(values);
+          Object.assign(sessionStore, values);
+        }
+      },
       sync: {
         async get(defaults) { return { ...defaults, ...overrides }; },
         async set() {}
       }
     },
     tabs: {
+      onUpdated: { addListener(listener) { tabUpdatedListeners.push(listener); } },
       async query(options) {
         calls.query.push(options);
+        if (Number.isInteger(options.groupId)) {
+          return (fixtureOptions.tabs || []).filter((tab) => tab.groupId === options.groupId);
+        }
         return [fixtureOptions.activeTab || {
           id: 7, index: 3, windowId: 2, url: "https://example.com/"
         }];
@@ -91,9 +114,13 @@ function loadBackground(overrides = {}, fixtureOptions = {}) {
       },
       async update(tabId, options) {
         calls.tabUpdate.push({ tabId, options });
+      },
+      async sendMessage(tabId, message) {
+        calls.sendMessage.push({ tabId, message });
       }
     },
     tabGroups: {
+      onRemoved: { addListener(listener) { groupRemovedListeners.push(listener); } },
       async update(groupId, options) {
         calls.groupUpdate.push({ groupId, options });
       }
@@ -117,6 +144,7 @@ function loadBackground(overrides = {}, fixtureOptions = {}) {
   return {
     calendar,
     calls,
+    sessionStore,
     async command(name) {
       await commandListeners[0](name);
     },
@@ -125,6 +153,15 @@ function loadBackground(overrides = {}, fixtureOptions = {}) {
         const handled = runtimeListeners[0](message, sender, resolve);
         if (!handled) reject(new Error(`Message was not handled: ${message.type}`));
       });
+    },
+    async tabUpdated(tabId, changeInfo, tab) {
+      tabUpdatedListeners[0](tabId, changeInfo, tab);
+      await new Promise((resolve) => setImmediate(resolve));
+    },
+    async groupRemoved(group) {
+      groupRemovedListeners[0](group);
+      await Promise.resolve();
+      await Promise.resolve();
     }
   };
 }
@@ -211,6 +248,125 @@ test("invalid stored calendar type names are ignored before selector constructio
   assert.deepEqual(extension.calls.create.map((call) => call.url), [
     "https://example.com/tickets/service"
   ]);
+});
+
+test("tab groups keep isolated description-only preferences", async () => {
+  const extension = loadBackground({}, {
+    sessionStore: { "tabRenameDescriptionOnly:21": true }
+  });
+
+  const group20 = await extension.message(
+    { type: "GET_TAB_RENAME_MODE" },
+    { tab: { id: 20, groupId: 20, url: "https://na.myconnectwise.net/ticket/20" } }
+  );
+  const group21 = await extension.message(
+    { type: "GET_TAB_RENAME_MODE" },
+    { tab: { id: 21, groupId: 21, url: "https://na.myconnectwise.net/ticket/21" } }
+  );
+
+  assert.equal(group20.descriptionOnly, false);
+  assert.equal(group21.descriptionOnly, true);
+});
+
+test("changing the active group immediately updates only its ConnectWise tabs", async () => {
+  const extension = loadBackground({}, {
+    activeTab: { id: 20, groupId: 20, windowId: 2, url: "https://example.com/group-home" },
+    tabs: [
+      { id: 201, groupId: 20, url: "https://na.myconnectwise.net/ticket/201" },
+      { id: 202, groupId: 20, url: "https://example.com/notes" },
+      { id: 211, groupId: 21, url: "https://na.myconnectwise.net/ticket/211" }
+    ]
+  });
+
+  const result = await extension.message({
+    type: "SET_CURRENT_GROUP_TITLE_MODE",
+    descriptionOnly: true
+  });
+
+  assert.equal(result.updated, 1);
+  assert.equal(extension.sessionStore["tabRenameDescriptionOnly:20"], true);
+  assert.deepEqual(JSON.parse(JSON.stringify(extension.calls.sendMessage)), [{
+    tabId: 201,
+    message: { type: "APPLY_TAB_RENAME_MODE", enabled: true, descriptionOnly: true }
+  }]);
+});
+
+test("tabs moved into or out of groups adopt the destination title mode", async () => {
+  const extension = loadBackground({}, {
+    sessionStore: { "tabRenameDescriptionOnly:30": true }
+  });
+  const ticket = {
+    id: 301,
+    groupId: 30,
+    url: "https://na.myconnectwise.net/ticket/301"
+  };
+
+  await extension.tabUpdated(ticket.id, { groupId: 30 }, ticket);
+  await extension.tabUpdated(ticket.id, { groupId: -1 }, { ...ticket, groupId: -1 });
+
+  assert.deepEqual(JSON.parse(JSON.stringify(extension.calls.sendMessage)), [
+    {
+      tabId: 301,
+      message: { type: "APPLY_TAB_RENAME_MODE", enabled: true, descriptionOnly: true }
+    },
+    {
+      tabId: 301,
+      message: { type: "APPLY_TAB_RENAME_MODE", enabled: true, descriptionOnly: false }
+    }
+  ]);
+});
+
+test("ungrouped tabs cannot set a group title preference", async () => {
+  const extension = loadBackground({}, {
+    activeTab: { id: 40, groupId: -1, windowId: 2, url: "https://na.myconnectwise.net/ticket/40" }
+  });
+
+  const current = await extension.message({ type: "GET_CURRENT_GROUP_TITLE_MODE" });
+  const changed = await extension.message({
+    type: "SET_CURRENT_GROUP_TITLE_MODE",
+    descriptionOnly: true
+  });
+
+  assert.equal(current.grouped, false);
+  assert.equal(current.descriptionOnly, false);
+  assert.equal(changed.ok, false);
+  assert.match(changed.error, /tab in a group/i);
+  assert.equal(extension.calls.sessionSet.length, 0);
+});
+
+test("closing a tab group removes its session preference", async () => {
+  const extension = loadBackground({}, {
+    sessionStore: { "tabRenameDescriptionOnly:50": true }
+  });
+
+  await extension.groupRemoved({ id: 50 });
+
+  assert.equal(extension.sessionStore["tabRenameDescriptionOnly:50"], undefined);
+  assert.deepEqual(extension.calls.sessionRemove, ["tabRenameDescriptionOnly:50"]);
+});
+
+test("the global TabRename setting overrides a group's description-only mode", async () => {
+  const extension = loadBackground({ tabRenameEnabled: false }, {
+    activeTab: { id: 60, groupId: 60, windowId: 2, url: "https://example.com/group-home" },
+    tabs: [
+      { id: 601, groupId: 60, url: "https://na.myconnectwise.net/ticket/601" }
+    ],
+    sessionStore: { "tabRenameDescriptionOnly:60": true }
+  });
+
+  const mode = await extension.message(
+    { type: "GET_TAB_RENAME_MODE" },
+    { tab: { id: 601, groupId: 60, url: "https://na.myconnectwise.net/ticket/601" } }
+  );
+  const result = await extension.message({
+    type: "SET_CURRENT_GROUP_TITLE_MODE",
+    descriptionOnly: true
+  });
+
+  assert.equal(mode.enabled, false);
+  assert.equal(mode.descriptionOnly, true);
+  assert.equal(result.ok, true);
+  assert.equal(extension.calls.sendMessage[0].message.enabled, false);
 });
 
 test("region shortcut injects the selector only when enabled", async () => {

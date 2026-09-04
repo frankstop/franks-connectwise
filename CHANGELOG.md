@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [1.2.2] - 2026-09-04
+
+### Added
+
+- A popup toggle for description-only Service and Project ticket titles in the active tab group, resolving issue #1.
+- Independent, session-scoped title preferences for each open Edge tab group.
+- Immediate title updates when group preferences change or ConnectWise tabs move between groups.
+
+### Preserved
+
+- Full ticket headers remain the default, and the global TabRename setting remains the master switch.
+
 ## [1.2.1] - 2026-09-04
 
 ### Fixed

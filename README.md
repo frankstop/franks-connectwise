@@ -9,6 +9,7 @@ A configurable Microsoft Edge extension that streamlines ConnectWise ticket work
 - Opens selected ConnectWise calendar entry types in one native Edge tab group.
 - Includes Service and Project entries by default, with optional Meeting, Activity, and Misc/Travel entries.
 - Renames ticket tabs to the full ticket header shown by ConnectWise.
+- Optionally uses description-only ticket titles for each individual Edge tab group.
 - Keeps tab names current when ConnectWise navigates within the same tab or overwrites the title.
 - Opens every link inside a rectangle you draw on any normal webpage.
 - Removes duplicate destinations and organizes selected links in a native Edge tab group.
@@ -17,7 +18,7 @@ A configurable Microsoft Edge extension that streamlines ConnectWise ticket work
 
 ## Install
 
-1. Download `Franks-ConnectWise-v1.2.1.zip` from the [latest release](https://github.com/frankstop/franks-connectwise/releases/latest).
+1. Download `Franks-ConnectWise-v1.2.2.zip` from the [latest release](https://github.com/frankstop/franks-connectwise/releases/latest).
 2. Extract the ZIP to a permanent folder.
 3. Open `edge://extensions` in Microsoft Edge.
 4. Turn on **Developer mode**.
@@ -27,6 +28,8 @@ A configurable Microsoft Edge extension that streamlines ConnectWise ticket work
 ## Use
 
 Open the ConnectWise **Manage: My Calendar** page, ensure today's events are visible, select the extension, and choose **Open Today's Tickets**. Ticket tabs are renamed automatically when TabRename is enabled.
+
+From any tab inside an Edge tab group, open the extension and select **Use description-only ticket titles** to shorten Service and Project ticket tabs in that group. Each group keeps its own title mode for the current browser session. Full ticket headers remain the default. Tabs outside that group and non-ConnectWise tabs are not changed.
 
 To open links from any normal webpage, press `Command+Shift+X` on macOS or `Ctrl+Shift+X` on Windows/Linux, then drag a rectangle over the links. Press `Esc` or the shortcut again to cancel. The shortcut can be changed at `edge://extensions/shortcuts`.
 
@@ -49,6 +52,7 @@ Download and extract the newest release over the existing extension folder. Then
 
 - **No selected calendar entries found:** Confirm today's entries are rendered and their types are enabled in Settings.
 - **Ticket tabs are not renamed:** Confirm TabRename is enabled and the page contains a `.detailLabel` ticket header.
+- **Description-only toggle is unavailable:** Open the extension from a tab inside the Edge tab group you want to configure, and confirm TabRename is enabled globally in Settings.
 - **Region selection does not start:** Confirm it is enabled in Settings, use a normal webpage, and check `edge://extensions/shortcuts` for a shortcut conflict.
 - **A link was not included:** Make sure the rectangle touches the visible link. Links in protected or inaccessible cross-origin frames cannot be selected.
 - **Extension error:** Open `edge://extensions`, locate Franks ConnectWise, and inspect its service worker errors.
@@ -60,7 +64,7 @@ Screenshots are intentionally omitted because ConnectWise pages can expose workp
 
 ## Privacy
 
-The always-on ConnectWise content script runs only on `https://na.myconnectwise.net/*`. The region selector runs on the active page only when its shortcut is pressed. Settings are saved through Edge's synchronized extension storage. The extension does not send ticket data, selected links, browsing history, credentials, or analytics to this project or any third-party service.
+The always-on ConnectWise content script runs only on `https://na.myconnectwise.net/*`. The region selector runs on the active page only when its shortcut is pressed. Global settings are saved through Edge's synchronized extension storage. Per-group title preferences use session storage and are removed when their tab groups close. The extension does not send ticket data, selected links, browsing history, credentials, or analytics to this project or any third-party service.
 
 Never include customer names, ticket contents, screenshots, credentials, or internal-only information in public issues or pull requests.
 
