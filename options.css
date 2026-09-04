@@ -80,6 +80,32 @@ section {
   border-top: 1px solid var(--border);
 }
 
+fieldset {
+  margin: 18px 0;
+  padding: 14px 16px 4px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+legend { font-weight: 700; }
+
+fieldset .check { margin: 12px 0; }
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 7px;
+  border: 1px solid rgba(15, 23, 42, .28);
+  border-radius: 50%;
+}
+
+.swatch.service { background: #3b82f6; }
+.swatch.project { background: #92400e; }
+.swatch.meeting { background: #ec4899; }
+.swatch.activity { background: #22c55e; }
+.swatch.misc-entry { background: #f97316; }
+
 label {
   display: block;
   margin: 18px 0;

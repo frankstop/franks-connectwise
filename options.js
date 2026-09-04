@@ -4,6 +4,7 @@ const DEFAULTS = {
   collapseGroup: false,
   keepCalendarActive: true,
   ticketLauncherEnabled: true,
+  calendarTypes: ["service", "project"],
   tabRenameEnabled: true,
   regionLinkOpenerEnabled: true,
   regionRemoveDuplicates: true,
@@ -14,6 +15,14 @@ const DEFAULTS = {
   regionCollapseGroup: false,
   theme: "system"
 };
+
+const CALENDAR_TYPES = ["service", "project", "meeting", "activity", "misc-entry"];
+
+function normalizeCalendarTypes(types) {
+  if (!Array.isArray(types)) return [...DEFAULTS.calendarTypes];
+  const allowed = new Set(CALENDAR_TYPES);
+  return [...new Set(types.filter((type) => allowed.has(type)))];
+}
 
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
@@ -26,6 +35,10 @@ async function load() {
   document.getElementById("collapseGroup").checked = settings.collapseGroup;
   document.getElementById("keepCalendarActive").checked = settings.keepCalendarActive;
   document.getElementById("ticketLauncherEnabled").checked = settings.ticketLauncherEnabled;
+  const calendarTypes = normalizeCalendarTypes(settings.calendarTypes);
+  for (const type of CALENDAR_TYPES) {
+    document.getElementById(`calendarType-${type}`).checked = calendarTypes.includes(type);
+  }
   document.getElementById("tabRenameEnabled").checked = settings.tabRenameEnabled;
   document.getElementById("regionLinkOpenerEnabled").checked = settings.regionLinkOpenerEnabled;
   document.getElementById("regionRemoveDuplicates").checked = settings.regionRemoveDuplicates;
@@ -49,6 +62,9 @@ document.getElementById("save").addEventListener("click", async () => {
     collapseGroup: document.getElementById("collapseGroup").checked,
     keepCalendarActive: document.getElementById("keepCalendarActive").checked,
     ticketLauncherEnabled: document.getElementById("ticketLauncherEnabled").checked,
+    calendarTypes: CALENDAR_TYPES.filter((type) =>
+      document.getElementById(`calendarType-${type}`).checked
+    ),
     tabRenameEnabled: document.getElementById("tabRenameEnabled").checked,
     regionLinkOpenerEnabled: document.getElementById("regionLinkOpenerEnabled").checked,
     regionRemoveDuplicates: document.getElementById("regionRemoveDuplicates").checked,

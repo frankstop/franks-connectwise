@@ -29,6 +29,32 @@
         <input id="ticketLauncherEnabled" type="checkbox">
         Enable the calendar ticket opener
       </label>
+
+      <fieldset>
+        <legend>Calendar entry types</legend>
+        <p class="section-help">Choose which entries Open Today's Tickets should include.</p>
+        <label class="check">
+          <input id="calendarType-service" type="checkbox">
+          <span><span class="swatch service" aria-hidden="true"></span>Blue — Service</span>
+        </label>
+        <label class="check">
+          <input id="calendarType-project" type="checkbox">
+          <span><span class="swatch project" aria-hidden="true"></span>Brown — Project</span>
+        </label>
+        <label class="check">
+          <input id="calendarType-meeting" type="checkbox">
+          <span><span class="swatch meeting" aria-hidden="true"></span>Pink — Meeting</span>
+        </label>
+        <label class="check">
+          <input id="calendarType-activity" type="checkbox">
+          <span><span class="swatch activity" aria-hidden="true"></span>Green — Activity</span>
+        </label>
+        <label class="check">
+          <input id="calendarType-misc-entry" type="checkbox">
+          <span><span class="swatch misc-entry" aria-hidden="true"></span>Orange — Misc/Travel</span>
+        </label>
+      </fieldset>
+
       <label class="check">
         <input id="tabRenameEnabled" type="checkbox">
         Automatically rename ticket tabs from the ConnectWise ticket header

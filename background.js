@@ -4,6 +4,7 @@ const DEFAULTS = {
   collapseGroup: false,
   keepCalendarActive: true,
   ticketLauncherEnabled: true,
+  calendarTypes: ["service", "project"],
   tabRenameEnabled: true,
   regionLinkOpenerEnabled: true,
   regionRemoveDuplicates: true,
@@ -17,6 +18,7 @@ const DEFAULTS = {
 
 chrome.runtime.onInstalled.addListener(async () => {
   const current = await chrome.storage.sync.get(DEFAULTS);
+  current.calendarTypes = normalizeCalendarTypes(current.calendarTypes);
   await chrome.storage.sync.set(current);
 });
 
@@ -61,6 +63,11 @@ async function openTodaysTickets() {
     throw new Error("The calendar ticket opener is disabled in Settings.");
   }
 
+  const calendarTypes = normalizeCalendarTypes(settings.calendarTypes);
+  if (!calendarTypes.length) {
+    throw new Error("Select at least one calendar type in Settings.");
+  }
+
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
   if (!tab?.id) {
@@ -74,7 +81,8 @@ async function openTodaysTickets() {
   const [{ result }] = await chrome.scripting.executeScript({
     target: { tabId: tab.id },
     world: "MAIN",
-    func: collectTicketUrlsFromCalendar
+    func: collectTicketUrlsFromCalendar,
+    args: [calendarTypes]
   });
 
   if (!result?.ok) {
@@ -84,7 +92,7 @@ async function openTodaysTickets() {
   const urls = [...new Set(result.urls || [])];
 
   if (!urls.length) {
-    throw new Error("No brown/pink calendar tickets were found.");
+    throw new Error("No selected calendar entries were found.");
   }
 
   const createdTabIds = [];
@@ -184,14 +192,30 @@ function normalizeColor(color) {
   return allowed.has(color) ? color : "purple";
 }
 
+function normalizeCalendarTypes(types) {
+  const allowed = new Set(["service", "project", "meeting", "activity", "misc-entry"]);
+  if (!Array.isArray(types)) return [...DEFAULTS.calendarTypes];
+  return [...new Set(types.filter((type) => allowed.has(type)))];
+}
+
 // This executes in ConnectWise's MAIN world so its window.open calls can be captured.
-async function collectTicketUrlsFromCalendar() {
+async function collectTicketUrlsFromCalendar(selectedTypes) {
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   try {
-    const targets = [...document.querySelectorAll(
-      ".appointment.meeting, .appointment.project"
-    )].sort((a, b) => {
+    // Keep this allowlist inside the injected function: executeScript functions do not
+    // inherit constants or helpers from the extension service worker.
+    const allowedTypes = new Set(["service", "project", "meeting", "activity", "misc-entry"]);
+    const safeTypes = Array.isArray(selectedTypes)
+      ? [...new Set(selectedTypes.filter((type) => allowedTypes.has(type)))]
+      : [];
+
+    if (!safeTypes.length) {
+      return { ok: false, error: "Select at least one calendar type in Settings." };
+    }
+
+    const selector = safeTypes.map((type) => `.appointment.${type}`).join(", ");
+    const targets = [...document.querySelectorAll(selector)].sort((a, b) => {
       const atop = parseFloat(a.style.top) || a.getBoundingClientRect().top || 0;
       const btop = parseFloat(b.style.top) || b.getBoundingClientRect().top || 0;
 
@@ -205,7 +229,7 @@ async function collectTicketUrlsFromCalendar() {
     if (!targets.length) {
       return {
         ok: false,
-        error: "No .appointment.meeting or .appointment.project elements were found."
+        error: "No selected calendar entries were found."
       };
     }
 

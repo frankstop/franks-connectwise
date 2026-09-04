@@ -6,8 +6,8 @@ A configurable Microsoft Edge extension that streamlines ConnectWise ticket work
 
 ## Features
 
-- Opens today's brown and pink ConnectWise calendar tickets in one native Edge tab group.
-- Ignores green calendar activities.
+- Opens selected ConnectWise calendar entry types in one native Edge tab group.
+- Includes Service and Project entries by default, with optional Meeting, Activity, and Misc/Travel entries.
 - Renames ticket tabs to the full ticket header shown by ConnectWise.
 - Keeps tab names current when ConnectWise navigates within the same tab or overwrites the title.
 - Opens every link inside a rectangle you draw on any normal webpage.
@@ -17,7 +17,7 @@ A configurable Microsoft Edge extension that streamlines ConnectWise ticket work
 
 ## Install
 
-1. Download `Franks-ConnectWise-v1.2.0.zip` from the [latest release](https://github.com/frankstop/franks-connectwise/releases/latest).
+1. Download `Franks-ConnectWise-v1.2.1.zip` from the [latest release](https://github.com/frankstop/franks-connectwise/releases/latest).
 2. Extract the ZIP to a permanent folder.
 3. Open `edge://extensions` in Microsoft Edge.
 4. Turn on **Developer mode**.
@@ -36,6 +36,7 @@ Select **Settings** in the extension popup to configure:
 
 - Bright, dark, or system-matched appearance.
 - Calendar ticket opening and automatic ticket tab renaming.
+- Calendar entry types: Service, Project, Meeting, Activity, and Misc/Travel.
 - Ticket group name, color, collapsed state, and active-tab behavior.
 - Region link selection, duplicate removal, and background opening.
 - Region tab grouping, group name, color, and collapsed state.
@@ -46,7 +47,7 @@ Download and extract the newest release over the existing extension folder. Then
 
 ## Troubleshooting
 
-- **No tickets found:** Confirm today's calendar events are rendered on screen.
+- **No selected calendar entries found:** Confirm today's entries are rendered and their types are enabled in Settings.
 - **Ticket tabs are not renamed:** Confirm TabRename is enabled and the page contains a `.detailLabel` ticket header.
 - **Region selection does not start:** Confirm it is enabled in Settings, use a normal webpage, and check `edge://extensions/shortcuts` for a shortcut conflict.
 - **A link was not included:** Make sure the rectangle touches the visible link. Links in protected or inaccessible cross-origin frames cannot be selected.

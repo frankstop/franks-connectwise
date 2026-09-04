@@ -2,10 +2,14 @@ import { readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 
 const manifest = JSON.parse(await readFile("manifest.json", "utf8"));
+const packageMetadata = JSON.parse(await readFile("package.json", "utf8"));
 const errors = [];
 
 if (manifest.manifest_version !== 3) errors.push("manifest_version must be 3");
 if (!/^\d+\.\d+\.\d+$/.test(manifest.version)) errors.push("manifest version must use X.Y.Z");
+if (packageMetadata.version !== manifest.version) {
+  errors.push(`package version ${packageMetadata.version} does not match manifest ${manifest.version}`);
+}
 const releaseVersion = process.env.RELEASE_VERSION?.replace(/^v/, "");
 if (releaseVersion && manifest.version !== releaseVersion) {
   errors.push(`manifest version ${manifest.version} does not match release ${releaseVersion}`);

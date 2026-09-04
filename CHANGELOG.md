@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [1.2.1] - 2026-09-04
+
+### Fixed
+
+- Calendar ticket launching now includes blue Service entries by default, fixing issue #2.
+- Calendar selectors are built only from validated, user-selected entry types.
+
+### Added
+
+- Settings for Service, Project, Meeting, Activity, and Misc/Travel calendar entries.
+- Service and Project migration defaults for existing installations.
+
 ## [1.2.0] - 2026-09-04
 
 ### Added
@@ -26,7 +38,7 @@ All notable changes to this project are documented here.
 
 ### Preserved
 
-- Brown and pink calendar ticket collection and native Edge tab grouping.
+- Selected calendar entry collection and native Edge tab grouping.
 
 ## [1.0.0] - 2026-08-31
 
