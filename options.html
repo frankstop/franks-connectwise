@@ -9,13 +9,79 @@
 <body>
   <main>
     <h1>Franks ConnectWise</h1>
-    <p class="sub">Ticket and tab settings</p>
+    <p class="sub">Choose exactly which tools and behaviors are active.</p>
+
+    <section aria-labelledby="appearance-heading">
+      <h2 id="appearance-heading">Appearance</h2>
+      <label>
+        Color mode
+        <select id="theme">
+          <option value="system">Match system</option>
+          <option value="bright">Bright</option>
+          <option value="dark">Dark</option>
+        </select>
+      </label>
+    </section>
 
     <section aria-labelledby="tab-rename-heading">
-      <h2 id="tab-rename-heading">TabRename</h2>
+      <h2 id="tab-rename-heading">ConnectWise tools</h2>
+      <label class="check">
+        <input id="ticketLauncherEnabled" type="checkbox">
+        Enable the calendar ticket opener
+      </label>
       <label class="check">
         <input id="tabRenameEnabled" type="checkbox">
         Automatically rename ticket tabs from the ConnectWise ticket header
+      </label>
+    </section>
+
+    <section aria-labelledby="region-heading">
+      <h2 id="region-heading">Region link opener</h2>
+      <p class="section-help">Press Command+Shift+X on macOS or Ctrl+Shift+X on Windows to draw over links.</p>
+
+      <label class="check">
+        <input id="regionLinkOpenerEnabled" type="checkbox">
+        Enable region link selection
+      </label>
+
+      <label class="check">
+        <input id="regionRemoveDuplicates" type="checkbox">
+        Open duplicate destinations only once
+      </label>
+
+      <label class="check">
+        <input id="regionOpenInBackground" type="checkbox">
+        Open selected links in the background
+      </label>
+
+      <label class="check">
+        <input id="regionGroupTabs" type="checkbox">
+        Put selected links in a tab group
+      </label>
+
+      <label>
+        Region tab group name
+        <input id="regionGroupTitle" type="text" maxlength="80">
+      </label>
+
+      <label>
+        Region tab group color
+        <select id="regionGroupColor">
+          <option value="blue">Blue</option>
+          <option value="cyan">Cyan</option>
+          <option value="green">Green</option>
+          <option value="yellow">Yellow</option>
+          <option value="orange">Orange</option>
+          <option value="red">Red</option>
+          <option value="pink">Pink</option>
+          <option value="purple">Purple</option>
+          <option value="grey">Grey</option>
+        </select>
+      </label>
+
+      <label class="check">
+        <input id="regionCollapseGroup" type="checkbox">
+        Collapse the region group after opening
       </label>
     </section>
 

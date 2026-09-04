@@ -22,6 +22,7 @@ mkdir -p "$stage_dir"
 files=(
   manifest.json
   background.js
+  selector.js
   tab-rename.js
   options.html
   options.css

@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Franks ConnectWise",
-  "version": "1.1.0",
-  "description": "Open today's ConnectWise calendar tickets in a tab group and rename ticket tabs automatically.",
+  "version": "1.2.0",
+  "description": "A configurable ConnectWise ticket and region link toolkit for Microsoft Edge.",
   "permissions": [
+    "activeTab",
     "scripting",
     "tabs",
     "tabGroups",
@@ -29,6 +30,15 @@
   "action": {
     "default_title": "Franks ConnectWise",
     "default_popup": "popup.html"
+  },
+  "commands": {
+    "select-links-in-region": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+X",
+        "mac": "Command+Shift+X"
+      },
+      "description": "Select a region and open its links"
+    }
   },
   "options_page": "options.html"
 }

@@ -3,7 +3,16 @@ const DEFAULTS = {
   groupColor: "purple",
   collapseGroup: false,
   keepCalendarActive: true,
-  tabRenameEnabled: true
+  ticketLauncherEnabled: true,
+  tabRenameEnabled: true,
+  regionLinkOpenerEnabled: true,
+  regionRemoveDuplicates: true,
+  regionOpenInBackground: true,
+  regionGroupTabs: true,
+  regionGroupTitle: "Region Links",
+  regionGroupColor: "blue",
+  regionCollapseGroup: false,
+  theme: "system"
 };
 
 chrome.runtime.onInstalled.addListener(async () => {
@@ -18,9 +27,40 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .catch((error) => sendResponse({ ok: false, error: error?.message || String(error) }));
     return true;
   }
+
+  if (message?.type === "OPEN_REGION_LINKS") {
+    openRegionLinks(message.urls, sender.tab)
+      .then(sendResponse)
+      .catch((error) => sendResponse({ ok: false, error: error?.message || String(error) }));
+    return true;
+  }
+});
+
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command !== "select-links-in-region") return;
+
+  const settings = await chrome.storage.sync.get(DEFAULTS);
+  if (!settings.regionLinkOpenerEnabled) return;
+
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id) return;
+
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ["selector.js"]
+    });
+  } catch (error) {
+    console.error("Franks ConnectWise region selector could not run on this page:", error);
+  }
 });
 
 async function openTodaysTickets() {
+  const settings = await chrome.storage.sync.get(DEFAULTS);
+  if (!settings.ticketLauncherEnabled) {
+    throw new Error("The calendar ticket opener is disabled in Settings.");
+  }
+
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
   if (!tab?.id) {
@@ -47,7 +87,6 @@ async function openTodaysTickets() {
     throw new Error("No brown/pink calendar tickets were found.");
   }
 
-  const settings = await chrome.storage.sync.get(DEFAULTS);
   const createdTabIds = [];
 
   for (const url of urls) {
@@ -82,6 +121,60 @@ async function openTodaysTickets() {
     urls,
     groupId
   };
+}
+
+async function openRegionLinks(requestedUrls, sourceTab) {
+  if (!sourceTab?.id || sourceTab.windowId == null) {
+    throw new Error("Could not determine the source tab.");
+  }
+
+  const settings = await chrome.storage.sync.get(DEFAULTS);
+  if (!settings.regionLinkOpenerEnabled) {
+    throw new Error("The region link opener is disabled in Settings.");
+  }
+
+  const validUrls = (requestedUrls || [])
+    .filter((url) => typeof url === "string")
+    .filter((url) => /^https?:\/\//i.test(url));
+  const urls = settings.regionRemoveDuplicates ? [...new Set(validUrls)] : validUrls;
+
+  if (!urls.length) return { ok: true, opened: 0 };
+
+  const createdTabIds = [];
+  const startIndex = typeof sourceTab.index === "number" ? sourceTab.index + 1 : undefined;
+
+  for (let index = 0; index < urls.length; index++) {
+    try {
+      const created = await chrome.tabs.create({
+        url: urls[index],
+        active: !settings.regionOpenInBackground,
+        windowId: sourceTab.windowId,
+        ...(startIndex == null ? {} : { index: startIndex + index })
+      });
+      if (created?.id != null) createdTabIds.push(created.id);
+    } catch (error) {
+      console.warn("Could not open region URL:", urls[index], error);
+    }
+  }
+
+  if (!createdTabIds.length) throw new Error("No selected links could be opened.");
+
+  let groupId = null;
+  if (settings.regionGroupTabs) {
+    groupId = await chrome.tabs.group({ tabIds: createdTabIds });
+    const title = (settings.regionGroupTitle || DEFAULTS.regionGroupTitle).trim();
+    await chrome.tabGroups.update(groupId, {
+      title: `${title} (${createdTabIds.length})`,
+      color: normalizeColor(settings.regionGroupColor),
+      collapsed: Boolean(settings.regionCollapseGroup)
+    });
+  }
+
+  if (settings.regionOpenInBackground) {
+    await chrome.tabs.update(sourceTab.id, { active: true });
+  }
+
+  return { ok: true, opened: createdTabIds.length, groupId };
 }
 
 function normalizeColor(color) {

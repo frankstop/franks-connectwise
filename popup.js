@@ -2,6 +2,14 @@ const openButton = document.getElementById("openTickets");
 const status = document.getElementById("status");
 const optionsButton = document.getElementById("options");
 
+chrome.storage.sync.get({ theme: "system", ticketLauncherEnabled: true }).then((settings) => {
+  document.documentElement.dataset.theme = settings.theme;
+  if (!settings.ticketLauncherEnabled) {
+    openButton.disabled = true;
+    status.textContent = "The calendar ticket opener is disabled in Settings.";
+  }
+});
+
 openButton.addEventListener("click", async () => {
   openButton.disabled = true;
   status.className = "status";

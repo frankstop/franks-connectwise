@@ -14,6 +14,7 @@ if (releaseVersion && manifest.version !== releaseVersion) {
 const expectedScripts = [
   manifest.background?.service_worker,
   ...(manifest.content_scripts || []).flatMap((entry) => entry.js || []),
+  ...(manifest.commands?.["select-links-in-region"] ? ["selector.js"] : []),
   "options.js",
   "popup.js"
 ].filter(Boolean);

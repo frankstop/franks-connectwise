@@ -2,7 +2,7 @@
 
 [![Validate](https://github.com/frankstop/franks-connectwise/actions/workflows/validate.yml/badge.svg)](https://github.com/frankstop/franks-connectwise/actions/workflows/validate.yml)
 
-A small Microsoft Edge extension that streamlines ConnectWise ticket work.
+A configurable Microsoft Edge extension that streamlines ConnectWise ticket work and opens links by drawing over them.
 
 ## Features
 
@@ -10,11 +10,14 @@ A small Microsoft Edge extension that streamlines ConnectWise ticket work.
 - Ignores green calendar activities.
 - Renames ticket tabs to the full ticket header shown by ConnectWise.
 - Keeps tab names current when ConnectWise navigates within the same tab or overwrites the title.
-- Provides settings for TabRename, group name, group color, collapsed state, and active tab behavior.
+- Opens every link inside a rectangle you draw on any normal webpage.
+- Removes duplicate destinations and organizes selected links in a native Edge tab group.
+- Includes bright, dark, and system-matched themes.
+- Lets you independently enable and configure each major behavior.
 
 ## Install
 
-1. Download `Franks-ConnectWise-v1.1.0.zip` from the [latest release](https://github.com/frankstop/franks-connectwise/releases/latest).
+1. Download `Franks-ConnectWise-v1.2.0.zip` from the [latest release](https://github.com/frankstop/franks-connectwise/releases/latest).
 2. Extract the ZIP to a permanent folder.
 3. Open `edge://extensions` in Microsoft Edge.
 4. Turn on **Developer mode**.
@@ -25,14 +28,17 @@ A small Microsoft Edge extension that streamlines ConnectWise ticket work.
 
 Open the ConnectWise **Manage: My Calendar** page, ensure today's events are visible, select the extension, and choose **Open Today's Tickets**. Ticket tabs are renamed automatically when TabRename is enabled.
 
+To open links from any normal webpage, press `Command+Shift+X` on macOS or `Ctrl+Shift+X` on Windows/Linux, then drag a rectangle over the links. Press `Esc` or the shortcut again to cancel. The shortcut can be changed at `edge://extensions/shortcuts`.
+
 ## Settings
 
 Select **Settings** in the extension popup to configure:
 
-- Automatic ticket tab renaming.
-- Tab group name and color.
-- Whether the group begins collapsed.
-- Whether the calendar remains the active tab.
+- Bright, dark, or system-matched appearance.
+- Calendar ticket opening and automatic ticket tab renaming.
+- Ticket group name, color, collapsed state, and active-tab behavior.
+- Region link selection, duplicate removal, and background opening.
+- Region tab grouping, group name, color, and collapsed state.
 
 ## Update
 
@@ -42,6 +48,8 @@ Download and extract the newest release over the existing extension folder. Then
 
 - **No tickets found:** Confirm today's calendar events are rendered on screen.
 - **Ticket tabs are not renamed:** Confirm TabRename is enabled and the page contains a `.detailLabel` ticket header.
+- **Region selection does not start:** Confirm it is enabled in Settings, use a normal webpage, and check `edge://extensions/shortcuts` for a shortcut conflict.
+- **A link was not included:** Make sure the rectangle touches the visible link. Links in protected or inaccessible cross-origin frames cannot be selected.
 - **Extension error:** Open `edge://extensions`, locate Franks ConnectWise, and inspect its service worker errors.
 - **ConnectWise changed:** DOM classes or menu identifiers may need to be updated in the extension.
 
@@ -51,7 +59,7 @@ Screenshots are intentionally omitted because ConnectWise pages can expose workp
 
 ## Privacy
 
-The extension runs only on `https://na.myconnectwise.net/*`. Settings are saved through Edge's synchronized extension storage. It does not send ticket data, browsing history, credentials, or analytics to this project or any third-party service.
+The always-on ConnectWise content script runs only on `https://na.myconnectwise.net/*`. The region selector runs on the active page only when its shortcut is pressed. Settings are saved through Edge's synchronized extension storage. The extension does not send ticket data, selected links, browsing history, credentials, or analytics to this project or any third-party service.
 
 Never include customer names, ticket contents, screenshots, credentials, or internal-only information in public issues or pull requests.
 
